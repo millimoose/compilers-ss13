@@ -18,7 +18,7 @@ asma:
     .cfi_startproc
     enter $0, $0
 
-    movdqa (%rdi), %xmm8
+    movdqu (%rdi), %xmm8
     pcmpeqb _spaces(%rip), %xmm8
     pmovmskb %xmm8, %eax
     popcntl %eax, %eax
