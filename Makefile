@@ -8,7 +8,7 @@ clean:
 	-rm _*.s *.o asma-test
 
 %.s: %.c
-	$(CC) -O3 -S $<
+	$(CC) -S $<
 
 asma-test: asma.o asma_test.o
 	gcc -o $@ $^
