@@ -1,0 +1,6 @@
+# Sample assembler files
+_*.s
+
+# Compiler output
+*.o
+asma-test
