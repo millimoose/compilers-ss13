@@ -16,7 +16,7 @@ spaces:
     .type   asma_orig, @function
 asma:
     .cfi_startproc
-    enter 0, 0
+    enter $0, $0
 
     movdqa (%rdi), %xmm8
     pcmpeqb _spaces(%rip), %xmm8
