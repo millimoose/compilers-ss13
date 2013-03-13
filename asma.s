@@ -19,7 +19,8 @@ asma:
     enter $0, $0
 
     movdqu (%rdi), %xmm8
-    pcmpeqb _spaces(%rip), %xmm8
+    movdqu _spaces(%rip), %xmm9
+    pcmpeqb %xmm9, %xmm8
     pmovmskb %xmm8, %eax
     popcntl %eax, %eax
 
