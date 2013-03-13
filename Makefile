@@ -1,4 +1,4 @@
-CFLAGS=-std=c99
+CFLAGS=-std=c99 $(CFLAGS)
 
 all: asma.o
 
@@ -8,7 +8,7 @@ clean:
 	-rm _*.s *.o asma-test
 
 %.s: %.c
-	$(CC) -S $<
+	$(CC) $(CFLAGS) -S $<
 
 asma-test: asma.o asma_test.o
 	gcc -o $@ $^
