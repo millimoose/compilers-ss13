@@ -25,6 +25,7 @@ asma:
 
     leave
     ret
+    .cfi_endproc
 
     .size   asma_orig, .-asma_orig
     .ident  "GCC: (Debian 4.4.5-8) 4.4.5"
