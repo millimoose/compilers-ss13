@@ -15,7 +15,7 @@ int asma_orig(char *s) {
 
 int main(int argc, char **argv) {
     char *s = "                ";
-    printf("asma() = %d\n", asma(s));
     printf("asma_orig() = %d\n", asma_orig(s));
+    printf("asma() = %d\n", asma(s));
 }
 

@@ -1,5 +1,4 @@
 .text
-.align 4
 .globl asma
 .globl _asma
 
