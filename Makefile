@@ -1,4 +1,4 @@
-CFLAGS=-std=c99 $(CFLAGS)
+CFLAGS := -std=c99 $(CFLAGS)
 
 all: asma.o
 
