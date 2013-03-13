@@ -1,3 +1,5 @@
+CFLAGS=-std=c99
+
 all: asma.o
 
 samples: _asma.s _asma2.s
