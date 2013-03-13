@@ -1,12 +1,11 @@
+
+.section .rodata,
+spaces:
+    .asciz "                "
+
 .text
 .globl asma
 .globl _asma
-
-spaces:
-    .long 0x20202020
-    .long 0x20202020
-    .long 0x20202020
-    .long 0x20202020
 
 asma: _asma:
 # code start
@@ -21,4 +20,3 @@ asma: _asma:
     leave
     ret
 # code end
-.data
