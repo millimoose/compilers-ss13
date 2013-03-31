@@ -21,7 +21,7 @@ asmb:
     # %rdi - char *s
     # %rsi - size_t n
     # %rdx - last_chars - how many chars to process in last run
-    # %rcx - index - how many iterations have run
+    # %rcx - index - how many characters were processed
     # %r8 - pop count of last iteration
     # %r9
     # %r11
@@ -35,12 +35,13 @@ asmb:
 
 _loop:
     # set %rdx to number of characters left to process
-    leaq (%rsi, %rcx, -16), %rdx # %rdx = %rsi - 16*%rcx
+    mov %rsi, %rdx
+    sub %rcx, %rdx
     cmp $0, %rdx
     jge _end
 
-    movdqu (%rdi, %rcx, 16), %xmm8 # load chunk of string to process
-    inc %rcx
+    movdqu (%rdi, %rcx), %xmm8 # load chunk of string to process
+    add $16, %rcx
 
     cmp $16, %rdx
     jg _last
@@ -53,6 +54,8 @@ _compare: #compare %xmm8 with spaces and add count of spaces to %eax
     jmp _loop
 
 _last: # last part of string, less than 16 chars
+    sub $16, %rdx
+    neg %rdx
     psrldq %rdx, %xmm8 # delete garbage after the last chars
     jmp _compare
 
