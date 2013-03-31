@@ -1,14 +1,14 @@
 CFLAGS := -std=c99 $(CFLAGS)
 
-all: asma.o
+all: asmb.o
 
-samples: _asma.s _asma2.s
+#samples: _asma.s _asma2.s
 
 clean:
-	-rm _*.s *.o asma-test
+	-rm *.o asmb
 
 %.s: %.c
 	$(CC) $(CFLAGS) -S $<
 
-asma-test: asma.o asma_test.o
+asma-test: asmb.o main.o
 	gcc -o $@ $^
