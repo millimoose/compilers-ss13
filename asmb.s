@@ -18,14 +18,16 @@ asmb:
     .cfi_startproc
     enter $0, $0
 
-    # %rdi - char *s
-    # %rsi - size_t n
-    # %rdx - last_chars - how many chars to process in last run
-    # %rcx - index - how many characters were processed
+    # === Arguments ===
+    # %rdi - char *input
+    # %rsi - size_t count
+    # === Temporaries ===
+    # %rdx - how many chars to process in final run
+    # %rcx - how many characters were "read" already
     # %r8 - pop count of last iteration
     # %r9
     # %r11
-
+    # === SSE Temporaries ===
     # %xmm8 - the chunk of the string being processed
     # %xmm9 - 16 spaces
 
@@ -37,33 +39,36 @@ _loop:
     # set %rdx to number of characters left to process
     mov %rsi, %rdx
     sub %rcx, %rdx
-    cmp $0, %rdx
+
+    # we've reached the end of the string
+    cmp %rdx, %rsi
     jge _end
 
     movdqu (%rdi, %rcx), %xmm8 # load chunk of string to process
     add $16, %rcx
 
-    cmp $16, %rdx
-    jg _last
-    
 _compare: #compare %xmm8 with spaces and add count of spaces to %eax
     pcmpeqb %xmm9, %xmm8
     pmovmskb %xmm8, %r8d
+
+    # if there's less than 16 characters to process, remove bogus bits 
+    # from mask
+    cmp $16, %rdx
+    jle _notlast
+
+    sub $16, %rdx
+    neg %rdx
+    shr %rdx, %rd8
+
+_notlast:
     popcntl %r8d, %r8d
     add %r8d, %eax
     jmp _loop
-
-_last: # last part of string, less than 16 chars
-    sub $16, %rdx
-    neg %rdx
-    psrldq %rdx, %xmm8 # delete garbage after the last chars
-    jmp _compare
 
 _end:
     leave
     ret
     .cfi_endproc
 
-    .size   asmb, .-asmb_orig
-    .ident  "GCC: (Debian 4.4.5-8) 4.4.5"
+    .size   asmb, .-asmb
     .section    .note.GNU-stack,"",@progbits
