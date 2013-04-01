@@ -19,17 +19,8 @@ asmb:
     .cfi_startproc
     enter $0, $0
 
-    xor %rdx, %rdx
-    cmp %rdx, %rsi
-    jge _123
+    mov %rsi, %rax
     
-    mov $456, %eax
-    jmp _ret
-
-_123:
-    mov $123, %eax
-
-_ret:
     leave
     ret
     .cfi_endproc
