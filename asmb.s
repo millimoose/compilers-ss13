@@ -22,8 +22,8 @@ asmb:
     # %rdi - char *input
     # %rsi - size_t count
     # === Temporaries ===
-    # %rdx - how many chars to process in final run
-    # %rcx - how many characters were "read" already
+    # %rdx - how many characters were "read" already
+    # %rcx - how many chars to process in final run
     # %r8 - pop count of last iteration
     # %r9
     # %r11
@@ -31,37 +31,37 @@ asmb:
     # %xmm8 - the chunk of the string being processed
     # %xmm9 - 16 spaces
 
-    xor %rcx, %rcx
+    xor %rdx, %rdx
     xor %rax, %rax
     movdqu _spaces(%rip), %xmm9
 
 _loop:
-    # set %rdx to number of characters left to process
-    mov %rsi, %rdx
-    sub %rcx, %rdx
+    # set %rcx to number of characters left to process
+    mov %rsi, %rcx
+    sub %rdx, %rcx
 
     # we've reached the end of the string
-    cmp %rdx, %rsi
+    cmp %rcx, %rsi
     jge _end
 
-    movdqu (%rdi, %rcx), %xmm8 # load chunk of string to process
-    add $16, %rcx
+    movdqu (%rdi, %rdx), %xmm8 # load chunk of string to process
+    add $16, %rdx
 
-_compare: #compare %xmm8 with spaces and add count of spaces to %eax
+    #compare %xmm8 with spaces and add count of spaces to %eax
     pcmpeqb %xmm9, %xmm8
     pmovmskb %xmm8, %r8d
 
     # if there's less than 16 characters to process, remove bogus bits 
     # from mask
-    cmp $16, %rdx
+    cmp $16, %rcx
     jle _notlast
 
-    sub $16, %rdx
-    neg %rdx
-    shrl %dl, %r8d
+    sub $16, %rcx
+    neg %rcx
+    shr %cl, %r8d
 
 _notlast:
-    popcntl %r8d, %r8d
+    popcnt %r8d, %r8d
     add %r8d, %eax
     jmp _loop
 
