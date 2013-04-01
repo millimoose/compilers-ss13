@@ -15,17 +15,17 @@ spaces:
 .globl asmb
     .type   asmb, @function
 # control flow testing
-asmb:
+asmbx:
     .cfi_startproc
     enter $0, $0
 
     mov %rsi, %rax
-    
+
     leave
     ret
     .cfi_endproc
 
-asmbx:
+asmb:
     .cfi_startproc
     enter $0, $0
 
@@ -53,7 +53,7 @@ _loop:
 
     # we've reached the end of the string
     cmp %rdx, %rsi
-    jge _end
+    jl _end
 
     movdqu (%rdi, %rdx), %xmm8 # load chunk of string to process
     add $16, %rdx
@@ -63,9 +63,9 @@ _loop:
     pmovmskb %xmm8, %r8d
 
     # if there's less than 16 characters to process, remove bogus bits 
-    # from mask
+    # from mask. (i.e. if there's 16 or more, skip the mask)
     cmp $16, %rcx
-    jle _notlast
+    jge _notlast
 
     sub $16, %rcx
     neg %rcx
