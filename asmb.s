@@ -20,7 +20,7 @@ asmb:
     enter $0, $0
 
     xor %rdx, %rdx
-    cmp rdx, rsi
+    cmp %rdx, %rsi
     jge _123
     
     mov $456, %eax
@@ -28,11 +28,12 @@ asmb:
 
 _123:
     mov $123, %eax
-    
+
 _ret:
     leave
     ret
     .cfi_endproc
+
 asmbx:
     .cfi_startproc
     enter $0, $0
