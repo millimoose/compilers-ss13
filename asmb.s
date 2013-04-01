@@ -58,7 +58,7 @@ _compare: #compare %xmm8 with spaces and add count of spaces to %eax
 
     sub $16, %rdx
     neg %rdx
-    shr %dl, %r8d
+    shrl %dl, %r8d
 
 _notlast:
     popcntl %r8d, %r8d
