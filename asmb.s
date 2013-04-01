@@ -41,7 +41,7 @@ _loop:
     sub %rdx, %rcx
 
     # we've reached the end of the string
-    cmp %rcx, %rsi
+    cmp %rdx, %rsi
     jge _end
 
     movdqu (%rdi, %rdx), %xmm8 # load chunk of string to process
