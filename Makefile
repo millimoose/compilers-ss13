@@ -10,5 +10,5 @@ clean:
 %.s: %.c
 	$(CC) $(CFLAGS) -S $<
 
-asma-test: asmb.o main.o
+asmb: asmb.o main.o
 	gcc -o $@ $^
