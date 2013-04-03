@@ -21,7 +21,7 @@ char *guard = " 1 3 5 7 9 B D F";
 
 int main(int argc, char **argv) {
     //          0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
-    char *s1 = " 1 3 5 7 9 B D F  23  67  AB  EF    4567    CDEF";
+    char *s = " 1 3 5 7 9 B D F  23  67  AB  EF    4567    CDEF";
     printf("asmb_orig(s1, 16) = %d\n", asmb_orig(s, 16));
     printf("asmb(s1, 16) = %d\n", asmb(s, 16));
 
