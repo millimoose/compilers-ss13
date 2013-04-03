@@ -4,6 +4,7 @@
 .globl spaces
     .section    .rodata
 _spaces:
+    #        1234567890123456
     .string "                " # 16 spaces
     .data
     .align 8
@@ -14,12 +15,25 @@ spaces:
     .text
 .globl asmb
     .type   asmb, @function
+    .type   asmb_test, @function
+
 # control flow testing
-asmbx:
+asmb_test:
     .cfi_startproc
     enter $0, $0
 
-    mov %rsi, %rax
+    xor %rax, %rax
+    movdqu _spaces(%rip), %xmm9
+    movdqu (%rdi), %xmm8
+    pcmpeqb %xmm9, %xmm8
+    pmovmskb %xmm8, %rdx
+    popcnt %rdx, %rdx
+
+    mov %rsi, %rcx
+    sub $16, %rcx
+    neg %rcx
+
+    mov %rcx, %eax
 
     leave
     ret
