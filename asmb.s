@@ -28,11 +28,12 @@ asmb_test:
     movdqu (%rdi), %xmm8
     pcmpeqb %xmm9, %xmm8
     pmovmskb %xmm8, %rdx
-    popcnt %rdx, %rdx
     
     mov %rdx, %rax
     jmp _asmb_test_end
     
+    popcnt %rdx, %rdx
+
     mov %rsi, %rcx
     sub $16, %rcx
     neg %rcx
