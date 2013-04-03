@@ -89,7 +89,8 @@ _loop:
 
     sub $16, %rcx
     neg %rcx
-    shl %cl, %r8d
+    # %r8w because popcount sets at most 16 useful bits
+    shl %cl, %r8w
 
 _notlast:
     popcnt %r8d, %r8d
