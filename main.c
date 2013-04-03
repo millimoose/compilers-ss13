@@ -21,11 +21,11 @@ size_t asmb_orig(char *s, size_t n) {
 char *guard = " 1 3 5 7 9 B D F";
 
 int main(int argc, char **argv) {
-    //          0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
-    char *s = " 1 3 5 7 9 B D F  23  67  AB  EF    4567    CDEF";
+    //         0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+    char *s = "    4567    CDEF  23  67  AB  EF 1 3 5 7 9 B D F";
     puts("===\n");
     printf("asmb_test(s, 1) = %d\n", asmb_test(s, 1));
-    printf("asmb_test(s, 1) = %X\n", asmb_test(s, 1));
+    printf("asmb_test(s, 1) = 0x%X\n", asmb_test(s, 1));
     puts("===\n\n");
 
     printf("asmb_orig(s, 16) = %d\n", asmb_orig(s, 16));
