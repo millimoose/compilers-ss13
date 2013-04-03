@@ -30,7 +30,7 @@ asmb_test:
     pmovmskb %xmm8, %rdx
     popcnt %rdx, %rdx
     
-    mov %rdx, %eax
+    mov %rdx, %rax
     jmp _asmb_test_end
     
     mov %rsi, %rcx
