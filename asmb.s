@@ -89,7 +89,7 @@ _loop:
 
     sub $16, %rcx
     neg %rcx
-    shr %cl, %r8d
+    shl %cl, %r8d
 
 _notlast:
     popcnt %r8d, %r8d
