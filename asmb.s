@@ -33,7 +33,7 @@ asmb_test:
     sub $16, %rcx
     neg %rcx
 
-    mov %rcx, %eax
+    mov %rcx, %rax
 
     leave
     ret

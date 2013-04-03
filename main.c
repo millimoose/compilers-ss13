@@ -25,23 +25,23 @@ int main(int argc, char **argv) {
     char *s = " 1 3 5 7 9 B D F  23  67  AB  EF    4567    CDEF";
     printf("===\nasmb_test(s, 1) = %d\n===\n", asmb_test(s, 1));
 
-    printf("asmb_orig(s1, 16) = %d\n", asmb_orig(s, 16));
-    printf("asmb(s1, 16) = %d\n\n", asmb(s, 16));
-    printf("asmb_orig(s1, 17) = %d\n", asmb_orig(s, 17));
-    printf("asmb(s1, 17) = %d\n\n", asmb(s, 17));
-    printf("asmb_orig(s1, 18) = %d\n", asmb_orig(s, 18));
-    printf("asmb(s1, 18) = %d\n\n", asmb(s, 18));
-    printf("asmb_orig(s1, 19) = %d\n", asmb_orig(s, 19));
-    printf("asmb(s1, 19) = %d\n\n", asmb(s, 19));
-    printf("asmb_orig(s1, 20) = %d\n", asmb_orig(s, 20));
-    printf("asmb(s1, 20) = %d\n\n", asmb(s, 20));
-    printf("asmb_orig(s1, 21) = %d\n", asmb_orig(s, 21));
-    printf("asmb(s1, 21) = %d\n\n", asmb(s, 21));
-    printf("asmb_orig(s1, 22) = %d\n", asmb_orig(s, 22));
-    printf("asmb(s1, 22) = %d\n\n", asmb(s, 22));
-    printf("asmb_orig(s1, 23) = %d\n", asmb_orig(s, 23));
-    printf("asmb(s1, 23) = %d\n\n", asmb(s, 23));
-    printf("asmb_orig(s1, 24) = %d\n", asmb_orig(s, 24));
-    printf("asmb(s1, 24) = %d\n\n", asmb(s, 24));
+    printf("asmb_orig(s, 16) = %d\n", asmb_orig(s, 16));
+    printf("asmb(s, 16) = %d\n\n", asmb(s, 16));
+    printf("asmb_orig(s, 17) = %d\n", asmb_orig(s, 17));
+    printf("asmb(s, 17) = %d\n\n", asmb(s, 17));
+    printf("asmb_orig(s, 18) = %d\n", asmb_orig(s, 18));
+    printf("asmb(s, 18) = %d\n\n", asmb(s, 18));
+    printf("asmb_orig(s, 19) = %d\n", asmb_orig(s, 19));
+    printf("asmb(s, 19) = %d\n\n", asmb(s, 19));
+    printf("asmb_orig(s, 20) = %d\n", asmb_orig(s, 20));
+    printf("asmb(s, 20) = %d\n\n", asmb(s, 20));
+    printf("asmb_orig(s, 21) = %d\n", asmb_orig(s, 21));
+    printf("asmb(s, 21) = %d\n\n", asmb(s, 21));
+    printf("asmb_orig(s, 22) = %d\n", asmb_orig(s, 22));
+    printf("asmb(s, 22) = %d\n\n", asmb(s, 22));
+    printf("asmb_orig(s, 23) = %d\n", asmb_orig(s, 23));
+    printf("asmb(s, 23) = %d\n\n", asmb(s, 23));
+    printf("asmb_orig(s, 24) = %d\n", asmb_orig(s, 24));
+    printf("asmb(s, 24) = %d\n\n", asmb(s, 24));
 }
 
