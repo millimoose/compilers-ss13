@@ -97,5 +97,5 @@ _end:
     .cfi_endproc
 
     .size   asmb, .-asmb
-    .size   asmb,_test .-asmb_test
+    .size   asmb_test, .-asmb_test
     .section    .note.GNU-stack,"",@progbits
