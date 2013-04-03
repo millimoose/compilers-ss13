@@ -29,13 +29,17 @@ asmb_test:
     pcmpeqb %xmm9, %xmm8
     pmovmskb %xmm8, %rdx
     popcnt %rdx, %rdx
-
+    
+    mov %rdx, %eax
+    jmp _asmb_test_end
+    
     mov %rsi, %rcx
     sub $16, %rcx
     neg %rcx
 
     mov %rcx, %rax
 
+_asmb_test_end:
     leave
     ret
     .cfi_endproc

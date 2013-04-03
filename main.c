@@ -23,7 +23,10 @@ char *guard = " 1 3 5 7 9 B D F";
 int main(int argc, char **argv) {
     //          0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
     char *s = " 1 3 5 7 9 B D F  23  67  AB  EF    4567    CDEF";
-    printf("===\nasmb_test(s, 1) = %d\n===\n", asmb_test(s, 1));
+    puts("===\n");
+    printf("asmb_test(s, 1) = %d\n", asmb_test(s, 1));
+    printf("asmb_test(s, 1) = %X\n", asmb_test(s, 1));
+    puts("===\n\n");
 
     printf("asmb_orig(s, 16) = %d\n", asmb_orig(s, 16));
     printf("asmb(s, 16) = %d\n\n", asmb(s, 16));
