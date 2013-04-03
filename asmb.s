@@ -15,6 +15,7 @@ spaces:
     .text
 .globl asmb
     .type   asmb, @function
+.globl asmb_test
     .type   asmb_test, @function
 
 # control flow testing
@@ -96,4 +97,5 @@ _end:
     .cfi_endproc
 
     .size   asmb, .-asmb
+    .size   asmb,_test .-asmb_test
     .section    .note.GNU-stack,"",@progbits
