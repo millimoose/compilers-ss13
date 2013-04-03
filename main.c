@@ -22,7 +22,7 @@ char *guard = " 1 3 5 7 9 B D F";
 
 int main(int argc, char **argv) {
     //         0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
-    char *s = "    4567    CDEF  23  67  AB  EF 1 3 5 7 9 B D F";
+    char *s = " X X  XX    XXXX  23  67  AB  EF 1 3 5 7 9 B D F";
     puts("===\n");
     printf("asmb_test(s, 1) = %d\n", asmb_test(s, 1));
     printf("asmb_test(s, 1) = 0x%X\n", asmb_test(s, 1));
