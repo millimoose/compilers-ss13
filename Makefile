@@ -1,14 +1,17 @@
 CFLAGS := -std=c99 $(CFLAGS)
+LIBS := -lfl
+LEX := flex
 
-all: asmb.o
+all: scanner
 
 #samples: _asma.s _asma2.s
 
 clean:
-	-rm *.o asmb
+	-rm *.o *.yy.c scanner.c scanner
 
-%.s: %.c
-	$(CC) $(CFLAGS) -S $<
+#%.s: %.c
+#	$(CC) $(CFLAGS) -S $<
+scanner.c: scanner.l
 
-asmb: asmb.o main.o
-	gcc -o $@ $^
+scanner: scanner.o
+
