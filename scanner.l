@@ -9,12 +9,12 @@ void keyword() {
 
 void hex_int() {
     int result = strtol(yytext+1, NULL, 16); // skip prefix
-    printf("num %X\n", result);
+    printf("num %x\n", result);
 }
 
 void dec_int() {
     int result = strtol(yytext, NULL, 10);
-    printf("num %X\n", result);
+    printf("num %x\n", result);
 }
 
 void identifier() {
@@ -59,7 +59,7 @@ or          |
 [[:digit:]]+            dec_int();
 [[:alpha:]][[:alnum:]]* identifier();
 
-"--"[^\n]*$   // skip comment
+"--".*       // skip comment
 [[:space:]]+ // skip whitespace
 
 .           { printf("ERROR: line %d\n", yylineno); exit(1); }
