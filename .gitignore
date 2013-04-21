@@ -1,6 +1,10 @@
-# Sample assembler files
-_*.s
-
 # Compiler output
 *.o
-asma-test
+/scanner
+/parser
+
+# lex/yacc generated files
+/scanner.c
+/parser.c
+/parser.h
+/y.output

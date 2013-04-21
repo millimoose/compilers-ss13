@@ -1,17 +1,21 @@
 CFLAGS := -std=c99 $(CFLAGS)
-LIBS := -lfl
-LEX := flex
+LIBS = l y
 
-all: scanner
+all: parser
 
 #samples: _asma.s _asma2.s
 
 clean:
-	-rm *.o *.yy.c scanner.c scanner
+	-rm scanner.c parser.c # generated C files
+	-rm *.o # object files
+	-rm scanner parser # executables
+	-rm y.output # verbose bison output
 
 #%.s: %.c
 #	$(CC) $(CFLAGS) -S $<
-scanner.c: scanner.l
 
-scanner: scanner.o
+parser.h: parser.c
+	mv -f y.tab.h parser.h
 
+scanner.o: parser.h
+parser: scanner.o parser.o
