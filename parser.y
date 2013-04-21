@@ -19,7 +19,7 @@
 
 %%
 
-program : program funcdef
+program : program funcdef ';'
         | // 0 or more funcdef
         ;
 
