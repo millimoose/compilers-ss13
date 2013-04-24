@@ -1,22 +1,26 @@
 %{
-    #include <stdlib.h>
-    #include <stdio.h>
-
-    int yylex(void); 
-    void yyerror(char *); 
+  #include <stdlib.h>
+  #include <stdio.h>
+  #define YYLEX_PARAM &yylval, &yylloc
 %}
 
-// Keywords
-%token TEnd TArray TOf TInt TReturn TIf TThen TElse TWhile TDo TVar TNot TOr TAssign
-%token TDecimalLiteral THexLiteral TIdentifier
+%union {}
 
-%start program
+%{
+  int yylex(YYSTYPE*, YYLTYPE*);
+  void yyerror(char *msg);
+%}
 
 %locations
 %defines
 %error-verbose
 %verbose
 
+// Keywords
+%token TEnd TArray TOf TInt TReturn TIf TThen TElse TWhile TDo TVar TNot TOr TAssign
+%token TDecimalLiteral THexLiteral TIdentifier
+
+%start program
 %%
 
 program : program funcdef ';'

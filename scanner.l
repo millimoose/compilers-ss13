@@ -46,9 +46,7 @@ or      { return TOr; }
 [[:space:]]+ // skip whitespace
 
 . { 
-    printf("%d.%d-%d.%d: %s\n", 
-        yylloc->first_line, yylloc->first_column,
-        yylloc->last_line, yylloc->last_column, yytext); 
+    printf("%d: unexpected token %s\n", yylineno, yytext); 
     exit(1); 
 }
 
