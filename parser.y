@@ -72,14 +72,22 @@ lexpr : TIdentifier
       | term '[' expr ']'
       ;
 
-expr : expr '-' mexpr
-     | expr '+' mexpr
-     | mexpr
+expr : addexpr
+     | minexpr
+     | mulexpr
      ;
 
-mexpr : mexpr '*' term
-      | term
-      ;
+addexpr : addexpr '+' term
+        | term
+        ;
+
+minexpr : minexpr '-' term
+        | term
+        ;
+
+mulexpr : mulexpr '*' term
+        | term
+        ;
 
 term : '(' expr ')'
      | term '[' expr ']'
@@ -92,10 +100,13 @@ term : '(' expr ')'
 funccall : TIdentifier '(' fcpars ')' ':' type
          ;
 
-fcpars : fcpars ',' expr
-       | expr
+fcpars : fcpar
        |
        ;
+
+fcpar : fcpar ',' term
+      | term
+      ;
 
 %%
 
