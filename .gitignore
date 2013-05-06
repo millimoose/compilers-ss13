@@ -1,10 +1,23 @@
-# Compiler output
+# Object files
 *.o
-/scanner
-/parser
+
+# binaries
+scanner
+parser
+ag
+
+# test files
+foo*
+test.*
 
 # lex/yacc generated files
-/scanner.c
-/parser.c
-/parser.h
-/y.output
+*.output
+*.tab.*
+*.yy.*
+
+
+# ox generated files
+oxout.[ly]
+
+# backup files
+*.bak.*

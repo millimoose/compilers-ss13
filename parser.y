@@ -1,26 +1,40 @@
 %{
   #include <stdlib.h>
   #include <stdio.h>
-  #define YYLEX_PARAM &yylval, &yylloc
+  #include <string.h>
+  #include <glib.h>
+
+  #include "ag.h"
 %}
 
 %union {}
 
 %{
-  int yylex(YYSTYPE*, YYLTYPE*);
+  extern int yylineno;
+  int yylex();
   void yyerror(char *msg);
 %}
 
-%locations
-%defines
-%error-verbose
-%verbose
+///%error-verbose
 
 // Keywords
 %token TEnd TArray TOf TInt TReturn TIf TThen TElse TWhile TDo TVar TNot TOr TAssign
 %token TDecimalLiteral THexLiteral TIdentifier
 
 %start program
+
+@attributes {int value;} TDecimalLiteral
+@attributes {int value;} THexLiteral
+@attributes {char *name;} TIdentifier
+
+@attributes { GHashTable *variables; } funcdef
+@attributes { GHashTable *variables; } pars
+
+@attributes { int rank; } array;
+@attributes { struct VariableType *type; } type;
+@attributes { struct VariableDeclaration *declaration; } vardef 
+
+
 %%
 
 program : program funcdef ';'
@@ -28,21 +42,31 @@ program : program funcdef ';'
         ;
 
 funcdef : TIdentifier '(' pars ')' stats TEnd
+          @{ @i @funcdef.variables@ = @pars.variables@; @}
         ;
 
+// 0 or more vardef
 pars : pars ',' vardef
-     | vardef; 
-     | // 0 or more vardef
+       @{ @i @pars.0.variables@ = addToScope(@pars.1.variables@, @vardef.declaration@); @}
+     | vardef
+       @{ @i @pars.variables@ = addToScope(newScope(), @vardef.declaration@); @} 
+     |
+       @{ @i @pars.variables@ = newScope(); @}
      ;
 
 vardef : TIdentifier ':' type
+         @{ @i @vardef.declaration@ = newVariableDeclaration(@TIdentifier.name@, @type.type@); @}
        ;
 
-type : array TInt
+type : array TInt 
+       @{ @i @type.type@ = newVariableType(@array.rank@); @}
      ;
 
-array : array TArray TOf
-      | // 0 or more "array of"
+// 0 or more "array of"
+array : array TArray TOf 
+        @{ @i @array.0.rank@ = @array.1.rank@ + 1; @}
+      | 
+        @{ @i @array.0.rank@ = 0; @}
       ;
 
 stats : stats stat ';'
@@ -73,20 +97,21 @@ lexpr : TIdentifier
       ;
 
 expr : addexpr
-     | minexpr
+     | subexpr
      | mulexpr
+     | term
      ;
 
 addexpr : addexpr '+' term
-        | term
+        | term '+' term
         ;
 
-minexpr : minexpr '-' term
-        | term
+subexpr : subexpr '-' term
+        | term '-' term
         ;
 
 mulexpr : mulexpr '*' term
-        | term
+        | term '*' term
         ;
 
 term : '(' expr ')'
@@ -104,16 +129,15 @@ fcpars : fcpar
        |
        ;
 
-fcpar : fcpar ',' term
-      | term
+fcpar : fcpar ',' expr
+      | expr
       ;
 
 %%
 
 void yyerror(char *msg) {
-    printf("%d:%d-%d.%d: %s\n", 
-        yylloc.first_line, yylloc.first_column, 
-        yylloc.last_line, yylloc.last_column, msg);
+    printf("%d: %s\n", 
+        yylineno, msg);
     exit(2);
 }
 

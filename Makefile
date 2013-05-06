@@ -1,21 +1,44 @@
-CFLAGS := -std=c99 $(CFLAGS)
-LIBS = l y
+CFLAGS = -std=c99 $(shell pkg-config --cflags glib-2.0)
+LDFLAGS = $(shell pkg-config --libs glib-2.0)
 
-all: parser
+all: ag
 
 #samples: _asma.s _asma2.s
 
 clean:
-	-rm scanner.c parser.c parser.h # generated C files
+	-rm *.tab.*
+	-rm *.yy.c
+	-rm oxout.*
 	-rm *.o # object files
-	-rm scanner parser # executables
-	-rm y.output # verbose bison output
+	-rm scanner parser ag foo # executables
+	-rm *.output # verbose bison output
 
 #%.s: %.c
 #	$(CC) $(CFLAGS) -S $<
 
-parser.h: parser.c
-	mv -f y.tab.h parser.h
+oxout.y oxout.l: parser.y scanner.l 
+	ox parser.y scanner.l
+	sed 's,///%,%,' oxout.y > _oxout.y
+	mv _oxout.y oxout.y
 
-scanner.o: parser.h
-parser: scanner.o parser.o
+parser.tab.c parser.tab.h: oxout.y
+	bison --file-prefix=parser --verbose --defines oxout.y
+
+scanner.yy.c: oxout.l
+	flex -o scanner.yy.c oxout.l
+
+scanner.yy.o: scanner.yy.c parser.tab.h
+	$(CC) $(CFLAGS) -c -o scanner.yy.o scanner.yy.c
+parser.tab.o: parser.tab.c
+	$(CC) $(CFLAGS) -c -o parser.tab.o parser.tab.c
+
+parser: scanner.l parser.y
+	flex -o scanner.yy.c scanner.l
+	bison --file-prefix=parser --verbose --defines parser.y
+	$(CC) $(LDFLAGS) -o parser scanner.yy.c parser.tab.c
+
+ag: scanner.yy.o parser.tab.o ag.o
+	$(CC) $(LDFLAGS) -o ag scanner.yy.o parser.tab.o ag.o
+
+foo: foo.c
+	$(CC) $(CFLAGS) $(LDFLAGS) -o foo foo.c
