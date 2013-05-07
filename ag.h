@@ -2,35 +2,61 @@
 #define AG_H
 
 enum PrimitiveType{
-  PrimitiveUndefined,
-  PrimitiveInt
+    PrimitiveUndefined,
+    PrimitiveInt
 };
 
-struct VariableType {
-  /* 
-   * The rank of the array. A value of 0 means the variable type is the 
-   * primitive type.
-   */ 
-  int rank;
+/** 
+ * VariableType 
+ */
+typedef struct _VariableType {
+    /* 
+     * The rank of the array. A value of 0 means the variable type is the 
+     * primitive type.
+     */ 
+    int rank;
 
-  /*
-   * The underlying primitive type of the array.
-   */
-  enum PrimitiveType primitive;
-};
+    /*
+     * The underlying primitive type of the array.
+     */
+    enum PrimitiveType primitive;
+} VariableType;
 
-struct VariableType *newVariableType(int rank);
+VariableType *newVariableType(int rank);
 
-struct VariableDeclaration {
-  char *name;
-  struct VariableType *type;
-};
-struct VariableDeclaration *newVariableDeclaration(char *name, struct VariableType *type);
+/**
+ * VariableDeclaration
+ */
+typedef struct _VariableDeclaration {
+    char *name;
+    VariableType *type;
+} VariableDeclaration;
 
-GSList *newScope();
-GSList *scopePushDeclaration(GSList *scope, struct VariableDeclaration *variable);
+VariableDeclaration *newVariableDeclaration(char *name, VariableType *type);
 
-GSList *newChain();
-GSList *chainPushScope(GSList *chain, GSList *scope);
+/**
+ * ScopeFrame
+ */
+typedef struct _ScopeFrame {
+    int len;
+    GSList *declarations;
+} ScopeFrame;
+
+ScopeFrame *newScopeFrame();
+ScopeFrame *frameAddDeclaration(ScopeFrame *frame, VariableDeclaration *declaration);
+void printScopeFrame(ScopeFrame* frame);
+
+/**
+ * ScopeChain
+ */
+typedef struct _ScopeChain {
+    int len;
+    GSList *frames;
+} ScopeChain;
+ScopeChain *newScopeChain();
+ScopeChain *chainPushFrame(ScopeChain *chain, ScopeFrame *frame);
+ScopeChain *chainAddDeclaration(ScopeChain *chain, VariableDeclaration *declaration);
+void printScopeChain(ScopeChain* chain);
+
 
 #endif

@@ -27,15 +27,17 @@
 @attributes {int value;} THexLiteral
 @attributes {char *name;} TIdentifier
 
-@attributes { GSList *variables; } funcdef
-@attributes { GSList *variables; } pars
+@attributes { struct _ScopeFrame *parameters; } funcdef
+@attributes { struct _ScopeFrame *parameters; } pars
 
 @attributes { int rank; } array
-@attributes { struct VariableType *type; } type
-@attributes { struct VariableDeclaration *declaration; } vardef 
+@attributes { struct _VariableType *type; } type
+@attributes { struct _VariableDeclaration *declaration; } vardef 
 
-@attributes { GSList *in_chain; GSList *out_chain; } stats
-@attributes { GSList *in_chain; GSList *out_chain; } stat
+@attributes { struct _ScopeChain *in_chain; struct _ScopeChain *out_chain; } stats
+@attributes { struct _ScopeChain *in_chain; struct _ScopeChain *out_chain; } stat
+
+@traversal preorder printChain
 
 %%
 
@@ -46,18 +48,18 @@ program : program funcdef ';'
 
 funcdef : TIdentifier '(' pars ')' stats TEnd
           @{ 
-            @i @funcdef.variables@ = @pars.variables@;
-            @i @stats.in_chain@ = chainPushScope(newScope(), chainPushScope(newChain(), @funcdef.variables@)); 
+            @i @funcdef.parameters@ = @pars.parameters@;
+            @i @stats.in_chain@ = chainPushFrame(newScopeChain(), @funcdef.parameters@); 
           @}
         ;
 
 // 0 or more vardef
 pars : pars ',' vardef
-       @{ @i @pars.0.variables@ = scopePushDeclaration(@pars.1.variables@, @vardef.declaration@); @}
+       @{ @i @pars.0.parameters@ = frameAddDeclaration(@pars.1.parameters@, @vardef.declaration@); @}
      | vardef
-       @{ @i @pars.variables@ = scopePushDeclaration(newScope(), @vardef.declaration@); @} 
+       @{ @i @pars.parameters@ = frameAddDeclaration(newScopeFrame(), @vardef.declaration@); @} 
      |
-       @{ @i @pars.variables@ = newScope(); @}
+       @{ @i @pars.parameters@ = newScopeFrame(); @}
      ;
 
 vardef : TIdentifier ':' type
@@ -81,34 +83,36 @@ stats : stats stat ';'
            @i @stats.1.in_chain@ = @stats.0.in_chain@;
            @i @stat.in_chain@ = @stats.1.out_chain@;
            @i @stats.0.out_chain@ = @stat.out_chain@;
+           @printChain printScopeChain(@stats.out_chain@);
         @}
       | 
-        @{ @i @stats.out_chain@ = @stats.in_chain@; @}
+        @{ 
+          @i @stats.out_chain@ = chainPushFrame(@stats.in_chain@, newScopeFrame()); 
+          @printChain printScopeChain(@stats.out_chain@);
+        @}
       ;
 
 stat : TReturn expr
        @{ @i @stat.out_chain@ = @stat.in_chain@; @}
      | TIf bool TThen stats TEnd
        @{ 
-         @i @stats.in_chain@ = chainPushScope(newScope(), @stat.in_chain@);
+         @i @stats.in_chain@ = @stat.in_chain@;
          @i @stat.out_chain@ = @stat.in_chain@;
        @}
      | TIf bool TThen stats TElse stats TEnd
        @{
-         @i @stats.0.in_chain@ = chainPushScope(newScope(), @stat.in_chain@);
-         @i @stats.1.in_chain@ = chainPushScope(newScope(), @stat.in_chain@);
+         @i @stats.0.in_chain@ = @stat.in_chain@;
+         @i @stats.1.in_chain@ = @stat.in_chain@;
          @i @stat.out_chain@ = @stat.in_chain@;
        @}
      | TWhile bool TDo stats TEnd
        @{ 
-         @i @stats.in_chain@ = chainPushScope(newScope(), @stat.in_chain@);
+         @i @stats.in_chain@ = @stat.in_chain@;
          @i @stat.out_chain@ = @stat.in_chain@;
        @}
      | TVar vardef TAssign expr
        @{ 
-        @i @stat.out_chain@ = chainPushScope(@stat.in_chain@->next, 
-                                             scopePushDeclaration(@stat.in_chain@->data,
-                                                                  @vardef.declaration@));
+        @i @stat.out_chain@ = chainAddDeclaration(@stat.in_chain@, @vardef.declaration@);
 
        @}
      | lexpr TAssign expr
@@ -157,16 +161,16 @@ term : '(' expr ')'
      | funccall
      ;
 
-funccall : TIdentifier '(' fcpars ')' ':' type
+funccall : TIdentifier '(' callpars ')' ':' type
          ;
 
-fcpars : fcpar
-       |
-       ;
+callpars : _callpars
+         |
+         ;
 
-fcpar : fcpar ',' expr
-      | expr
-      ;
+_callpars : _callpars ',' expr
+          | expr
+          ;
 
 %%
 

@@ -40,12 +40,9 @@ or          return TOr;
 "+"     return '+';
 "*"     return '*';
 
-"$"[[:xdigit:]]+            return THexLiteral; @{ 
-                            @THexLiteral.value@ = strtol(yytext+1, NULL, 16); @}
-[[:digit:]]+                return TDecimalLiteral; @{ 
-                            @TDecimalLiteral.value@ = strtol(yytext, NULL, 10); @}
-[[:alpha:]][[:alnum:]]*     return TIdentifier; @{ 
-                            @TIdentifier.name@ = g_strdup(yytext); @}
+"$"[[:xdigit:]]+            return THexLiteral;         @{ @THexLiteral.value@ = strtol(yytext+1, NULL, 16); @}
+[[:digit:]]+                return TDecimalLiteral;     @{ @TDecimalLiteral.value@ = strtol(yytext, NULL, 10); @}
+[[:alpha:]][[:alnum:]]*     return TIdentifier;         @{ @TIdentifier.name@ = g_strdup(yytext); @}
 
 "--".*       // skip comment
 [[:space:]]+ // skip whitespace

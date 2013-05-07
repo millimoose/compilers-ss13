@@ -1,4 +1,4 @@
-CFLAGS = -std=c99 $(shell pkg-config --cflags glib-2.0)
+CFLAGS = -std=c99 -g $(shell pkg-config --cflags glib-2.0)
 LDFLAGS = $(shell pkg-config --libs glib-2.0)
 
 all: ag
