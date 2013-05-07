@@ -27,29 +27,35 @@
 @attributes {int value;} THexLiteral
 @attributes {char *name;} TIdentifier
 
-@attributes { GHashTable *variables; } funcdef
-@attributes { GHashTable *variables; } pars
+@attributes { GSList *variables; } funcdef
+@attributes { GSList *variables; } pars
 
-@attributes { int rank; } array;
-@attributes { struct VariableType *type; } type;
+@attributes { int rank; } array
+@attributes { struct VariableType *type; } type
 @attributes { struct VariableDeclaration *declaration; } vardef 
 
+@attributes { GSList *in_chain; GSList *out_chain; } stats
+@attributes { GSList *in_chain; GSList *out_chain; } stat
 
 %%
 
+// 0 or more funcdef
 program : program funcdef ';'
-        | // 0 or more funcdef
+        | 
         ;
 
 funcdef : TIdentifier '(' pars ')' stats TEnd
-          @{ @i @funcdef.variables@ = @pars.variables@; @}
+          @{ 
+            @i @funcdef.variables@ = @pars.variables@;
+            @i @stats.in_chain@ = chainPushScope(newScope(), chainPushScope(newChain(), @funcdef.variables@)); 
+          @}
         ;
 
 // 0 or more vardef
 pars : pars ',' vardef
-       @{ @i @pars.0.variables@ = addToScope(@pars.1.variables@, @vardef.declaration@); @}
+       @{ @i @pars.0.variables@ = scopePushDeclaration(@pars.1.variables@, @vardef.declaration@); @}
      | vardef
-       @{ @i @pars.variables@ = addToScope(newScope(), @vardef.declaration@); @} 
+       @{ @i @pars.variables@ = scopePushDeclaration(newScope(), @vardef.declaration@); @} 
      |
        @{ @i @pars.variables@ = newScope(); @}
      ;
@@ -66,20 +72,49 @@ type : array TInt
 array : array TArray TOf 
         @{ @i @array.0.rank@ = @array.1.rank@ + 1; @}
       | 
-        @{ @i @array.0.rank@ = 0; @}
+        @{ @i @array.rank@ = 0; @}
       ;
 
+// 0 or more stat
 stats : stats stat ';'
-      | // 0 or more stat
+        @{ 
+           @i @stats.1.in_chain@ = @stats.0.in_chain@;
+           @i @stat.in_chain@ = @stats.1.out_chain@;
+           @i @stats.0.out_chain@ = @stat.out_chain@;
+        @}
+      | 
+        @{ @i @stats.out_chain@ = @stats.in_chain@; @}
       ;
 
 stat : TReturn expr
+       @{ @i @stat.out_chain@ = @stat.in_chain@; @}
      | TIf bool TThen stats TEnd
+       @{ 
+         @i @stats.in_chain@ = chainPushScope(newScope(), @stat.in_chain@);
+         @i @stat.out_chain@ = @stat.in_chain@;
+       @}
      | TIf bool TThen stats TElse stats TEnd
+       @{
+         @i @stats.0.in_chain@ = chainPushScope(newScope(), @stat.in_chain@);
+         @i @stats.1.in_chain@ = chainPushScope(newScope(), @stat.in_chain@);
+         @i @stat.out_chain@ = @stat.in_chain@;
+       @}
      | TWhile bool TDo stats TEnd
+       @{ 
+         @i @stats.in_chain@ = chainPushScope(newScope(), @stat.in_chain@);
+         @i @stat.out_chain@ = @stat.in_chain@;
+       @}
      | TVar vardef TAssign expr
+       @{ 
+        @i @stat.out_chain@ = chainPushScope(@stat.in_chain@->next, 
+                                             scopePushDeclaration(@stat.in_chain@->data,
+                                                                  @vardef.declaration@));
+
+       @}
      | lexpr TAssign expr
+       @{ @i @stat.out_chain@ = @stat.in_chain@; @}
      | term
+       @{ @i @stat.out_chain@ = @stat.in_chain@; @}
      ;
 
 bool : bool TOr bterm

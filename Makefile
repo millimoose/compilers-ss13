@@ -28,9 +28,7 @@ scanner.yy.c: oxout.l
 	flex -o scanner.yy.c oxout.l
 
 scanner.yy.o: scanner.yy.c parser.tab.h
-	$(CC) $(CFLAGS) -c -o scanner.yy.o scanner.yy.c
 parser.tab.o: parser.tab.c
-	$(CC) $(CFLAGS) -c -o parser.tab.o parser.tab.c
 
 parser: scanner.l parser.y
 	flex -o scanner.yy.c scanner.l
@@ -38,7 +36,6 @@ parser: scanner.l parser.y
 	$(CC) $(LDFLAGS) -o parser scanner.yy.c parser.tab.c
 
 ag: scanner.yy.o parser.tab.o ag.o
-	$(CC) $(LDFLAGS) -o ag scanner.yy.o parser.tab.o ag.o
 
+# test crap, not shared
 foo: foo.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o foo foo.c

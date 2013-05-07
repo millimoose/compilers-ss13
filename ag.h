@@ -27,7 +27,10 @@ struct VariableDeclaration {
 };
 struct VariableDeclaration *newVariableDeclaration(char *name, struct VariableType *type);
 
-GHashTable *newScope();
-GHashTable *addToScope(GHashTable *scope, struct VariableDeclaration *variable);
+GSList *newScope();
+GSList *scopePushDeclaration(GSList *scope, struct VariableDeclaration *variable);
+
+GSList *newChain();
+GSList *chainPushScope(GSList *chain, GSList *scope);
 
 #endif

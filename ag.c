@@ -18,11 +18,16 @@ struct VariableDeclaration *newVariableDeclaration(char *name, struct VariableTy
   return result;
 }
 
-GHashTable *newScope() {
-  return g_hash_table_new(g_str_hash, g_str_equal);
+GSList *newScope() {
+    return NULL;
+}
+GSList *scopePushDeclaration(GSList *scope, struct VariableDeclaration *declaration) {
+    return g_slist_prepend(scope, declaration);
 }
 
-GHashTable *addToScope(GHashTable *scope, struct VariableDeclaration *declaration) {
-    g_hash_table_insert(scope, declaration->name, declaration);
-    return scope;
+GSList *newChain() {
+    return NULL;
+}
+GSList *chainPushScope(GSList *chain, GSList *scope) {
+    return g_slist_prepend(chain, scope);
 }
