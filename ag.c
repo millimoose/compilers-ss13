@@ -29,7 +29,7 @@ char *stringFromType(VariableType *type) {
 
 VariableDeclaration *newVariableDeclaration(char *name, VariableType *type) {
     char *type_s = stringFromType(type);
-    g_debug("newVariableDeclaration(name=%s, type=%s)", name, type_s);
+    g_message("newVariableDeclaration(name=%s, type=%s)", name, type_s);
     g_free(type_s);
     VariableDeclaration *result = g_new(VariableDeclaration, 1);
     result->name = name;
@@ -110,18 +110,21 @@ void printScopeChain(ScopeChain *chain) {
 }
 
 void checkDuplicateParameters(char *identifier, ScopeFrame *parameters) {
-    g_debug("checkDuplicateParameters(identifier=%s)", identifier);
+    g_message("checkDuplicateParameters(identifier=%s)", identifier);
     GSList *declarations = g_slist_reverse(parameters->declarations);
     GHashTable *visited = g_hash_table_new(&g_str_hash, &g_str_equal);
 
     for (GSList *it = declarations; it != NULL; it = it->next) {
         VariableDeclaration *declaration = it->data;
+        char *declaration_s = stringFromDeclaration(declaration);
+        g_message("checkDuplicateParameters():\nvisiting parameter '%s'", declaration_s);
+        g_free(declaration_s);
         VariableDeclaration *visited_declaration = g_hash_table_lookup(visited, declaration->name);
 
         if (visited_declaration == NULL) {
             g_hash_table_insert(visited, declaration->name, declaration);
         } else {
-            g_critical("checkDuplicateParameters(): duplicate parameters '%s' and '%s'", 
+            g_critical("checkDuplicateParameters():\nduplicate parameters '%s' and '%s'", 
                        stringFromDeclaration(visited_declaration), 
                     stringFromDeclaration(declaration));
             exit(StatusSemanticError);
