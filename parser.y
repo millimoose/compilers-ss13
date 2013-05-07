@@ -5,6 +5,7 @@
   #include <glib.h>
 
   #include "ag.h"
+  #include "status-codes.h"
 %}
 
 %union {}
@@ -27,7 +28,7 @@
 @attributes {int value;} THexLiteral
 @attributes {char *name;} TIdentifier
 
-@attributes { struct _ScopeFrame *parameters; } funcdef
+@attributes { char *identifier; struct _ScopeFrame *parameters; } funcdef
 @attributes { struct _ScopeFrame *parameters; } pars
 
 @attributes { int rank; } array
@@ -37,7 +38,8 @@
 @attributes { struct _ScopeChain *in_chain; struct _ScopeChain *out_chain; } stats
 @attributes { struct _ScopeChain *in_chain; struct _ScopeChain *out_chain; } stat
 
-@traversal preorder printChain
+@traversal preorder stats
+@traversal preorder funcdef
 
 %%
 
@@ -49,7 +51,10 @@ program : program funcdef ';'
 funcdef : TIdentifier '(' pars ')' stats TEnd
           @{ 
             @i @funcdef.parameters@ = @pars.parameters@;
-            @i @stats.in_chain@ = chainPushFrame(newScopeChain(), @funcdef.parameters@); 
+            @i @funcdef.identifier@ = @TIdentifier.name@;
+            @i @stats.in_chain@ = chainPushFrame(newScopeChain(), @funcdef.parameters@);
+            @stats printScopeChain(@stats.out_chain@);
+            @funcdef checkDuplicateParameters(@funcdef.identifier@, @funcdef.parameters@);
           @}
         ;
 
@@ -83,12 +88,10 @@ stats : stats stat ';'
            @i @stats.1.in_chain@ = @stats.0.in_chain@;
            @i @stat.in_chain@ = @stats.1.out_chain@;
            @i @stats.0.out_chain@ = @stat.out_chain@;
-           @printChain printScopeChain(@stats.out_chain@);
         @}
       | 
         @{ 
           @i @stats.out_chain@ = chainPushFrame(@stats.in_chain@, newScopeFrame()); 
-          @printChain printScopeChain(@stats.out_chain@);
         @}
       ;
 
@@ -98,17 +101,20 @@ stat : TReturn expr
        @{ 
          @i @stats.in_chain@ = @stat.in_chain@;
          @i @stat.out_chain@ = @stat.in_chain@;
+         @stats printScopeChain(@stats.out_chain@);
        @}
      | TIf bool TThen stats TElse stats TEnd
        @{
          @i @stats.0.in_chain@ = @stat.in_chain@;
          @i @stats.1.in_chain@ = @stat.in_chain@;
          @i @stat.out_chain@ = @stat.in_chain@;
+         @stats printScopeChain(@stats.0.out_chain@); printScopeChain(@stats.1.out_chain@);
        @}
      | TWhile bool TDo stats TEnd
        @{ 
          @i @stats.in_chain@ = @stat.in_chain@;
          @i @stat.out_chain@ = @stat.in_chain@;
+         @stats printScopeChain(@stats.out_chain@);
        @}
      | TVar vardef TAssign expr
        @{ 
@@ -177,7 +183,7 @@ _callpars : _callpars ',' expr
 void yyerror(char *msg) {
     printf("%d: %s\n", 
         yylineno, msg);
-    exit(2);
+    exit(StatusParserError);
 }
 
 int main(int nargs, char **args) {

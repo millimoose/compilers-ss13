@@ -5,9 +5,9 @@
 #include <glib.h>
 
 #include "ag.h"
+#include "status-codes.h"
 
 VariableType *newVariableType(int rank) {
-    // g_message("newVariableType(rank=%d)", rank);
     VariableType *result = g_new(VariableType, 1);
     result->rank = rank;
     result->primitive = PrimitiveInt;
@@ -19,7 +19,6 @@ static char *PrimitiveTypeNames[] = {
 };  
 
 char *stringFromType(VariableType *type) {
-    // g_message("stringFromType(type=%p)", type);
     GString *result = g_string_new("");
     for (int i = 0; i < type->rank; i++) {
       g_string_append(result, "array of ");
@@ -29,7 +28,9 @@ char *stringFromType(VariableType *type) {
 }
 
 VariableDeclaration *newVariableDeclaration(char *name, VariableType *type) {
-    // g_message("newVariableDeclaration(name=%p, type=%p)", name, type);
+    char *type_s = stringFromType(type);
+    g_debug("newVariableDeclaration(name=%s, type=%s)", name, type_s);
+    g_free(type_s);
     VariableDeclaration *result = g_new(VariableDeclaration, 1);
     result->name = name;
     result->type = type;
@@ -37,11 +38,10 @@ VariableDeclaration *newVariableDeclaration(char *name, VariableType *type) {
 }
 
 char *stringFromDeclaration(VariableDeclaration *declaration) {
-    // g_message("stringFromDeclaration(declaration=%p)", declaration);
     GString *result = g_string_new("");
-    char *type_string = stringFromType(declaration->type);
-    g_string_printf(result, "%s : %s", declaration->name, type_string);
-    g_free(type_string);
+    char *type_s = stringFromType(declaration->type);
+    g_string_printf(result, "%s : %s", declaration->name, type_s);
+    g_free(type_s);
     return g_string_free(result, FALSE);
 }
 
@@ -60,12 +60,11 @@ ScopeFrame *frameAddDeclaration(ScopeFrame *frame, VariableDeclaration *declarat
 }
 
 void printScopeFrame(ScopeFrame *scope) {
-    // g_message("printScopeFrame(scope=%p)", scope);
     for (GSList *it = scope->declarations; it != NULL; it = it->next) {
         VariableDeclaration *declaration = it->data;
-        char *declaration_string = stringFromDeclaration(declaration);
-        puts(declaration_string);
-        g_free(declaration_string);
+        char *declaration_s = stringFromDeclaration(declaration);
+        puts(declaration_s);
+        g_free(declaration_s);
     }
 }
 
@@ -87,19 +86,17 @@ ScopeChain *chainPushFrame(ScopeChain *chain, ScopeFrame *frame) {
 
 ScopeChain *chainAddDeclaration(ScopeChain *chain, VariableDeclaration *declaration) {
     ScopeChain *result = g_new(ScopeChain, 1);
-    ScopeFrame *topFrame = chain->frames->data;
+    ScopeFrame *top_frame = chain->frames->data;
     
     result->len = chain->len;  
     result->frames = g_slist_prepend(chain->frames->next, 
-                                           frameAddDeclaration(topFrame, declaration));
+                                           frameAddDeclaration(top_frame, declaration));
     
-    frameAddDeclaration(topFrame, declaration);
+    frameAddDeclaration(top_frame, declaration);
     return result;
 }
 
 void printScopeChain(ScopeChain *chain) {
-    // g_message("printChain(chain=%p)", chain);
-    
     int i = 0;
     for (GSList *it = chain->frames; 
          it != NULL; 
@@ -112,4 +109,25 @@ void printScopeChain(ScopeChain *chain) {
     puts("");
 }
 
+void checkDuplicateParameters(char *identifier, ScopeFrame *parameters) {
+    g_debug("checkDuplicateParameters(identifier=%s)", identifier);
+    GSList *declarations = g_slist_reverse(parameters->declarations);
+    GHashTable *visited = g_hash_table_new(&g_str_hash, &g_str_equal);
 
+    for (GSList *it = declarations; it != NULL; it = it->next) {
+        VariableDeclaration *declaration = it->data;
+        VariableDeclaration *visited_declaration = g_hash_table_lookup(visited, declaration->name);
+
+        if (visited_declaration == NULL) {
+            g_hash_table_insert(visited, declaration->name, declaration);
+        } else {
+            g_critical("checkDuplicateParameters(): duplicate parameters '%s' and '%s'", 
+                       stringFromDeclaration(visited_declaration), 
+                    stringFromDeclaration(declaration));
+            exit(StatusSemanticError);
+        }
+    }
+
+    g_hash_table_destroy(visited);
+    g_slist_free(declarations);
+}

@@ -1,6 +1,7 @@
 %{
 
 #include "parser.tab.h"
+#include "status-codes.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -49,7 +50,7 @@ or          return TOr;
 
 . { 
     printf("%d: unexpected token %s\n", yylineno, yytext); 
-    exit(1); 
+    exit(StatusLexerError); 
 }
 
 %%
