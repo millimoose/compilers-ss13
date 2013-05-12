@@ -1,0 +1,3 @@
+x()
+ var x:array of int:=f(5):array of int;
+end;

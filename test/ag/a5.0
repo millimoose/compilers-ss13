@@ -1,0 +1,6 @@
+x()
+ var x:int := 0;
+ while 0<1 do
+   return x;
+ end;
+end;

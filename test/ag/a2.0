@@ -1,0 +1,5 @@
+x()
+ x(0):int;
+ var x:int := 0;
+ return x;
+end;

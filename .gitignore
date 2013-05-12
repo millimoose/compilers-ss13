@@ -8,6 +8,7 @@ ag
 
 # test files
 foo*
+!test/*
 test.*
 
 # lex/yacc generated files

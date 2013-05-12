@@ -1,0 +1,3 @@
+x(x:array of int, y: array of array of int)
+ y[5] := x;
+end;
