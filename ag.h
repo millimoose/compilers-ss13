@@ -23,6 +23,7 @@ typedef struct _VariableType {
 } VariableType;
 
 VariableType *newVariableType(int rank);
+gboolean eqVariableType(VariableType *left, VariableType *right);
 
 /**
  * VariableDeclaration
@@ -57,6 +58,8 @@ ScopeChain *newScopeChain();
 ScopeChain *chainPushFrame(ScopeChain *chain, ScopeFrame *frame);
 ScopeChain *chainAddDeclaration(ScopeChain *chain, VariableDeclaration *declaration);
 void printScopeChain(ScopeChain* chain);
+gboolean _debugScopeChain;
+void debugScopeChain(char *label, ScopeChain *chain);
 
 /**
  * Semantic checks

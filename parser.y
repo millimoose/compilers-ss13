@@ -39,6 +39,8 @@
   }
 
 */
+  
+  gboolean _debugScopeChain = FALSE;
 %}
 
 ///%error-verbose
@@ -99,7 +101,7 @@ funcdef : TIdentifier '(' pars ')' fstats TEnd
             @i @fstats.scope@ = chainPushFrame(newScopeChain(), @pars.parameters@);
             
             @funcdef checkDuplicateParameters(@funcdef.identifier@, @funcdef.parameters@);
-            @stats puts("FUNCDEF.PARS"); printScopeFrame(@pars.parameters@);
+            //@stats puts("FUNCDEF.PARS"); printScopeFrame(@pars.parameters@);
           @}  
         ;
 
@@ -107,7 +109,7 @@ fstats  : stats
           @{
             @i @stats.in_chain@ = @fstats.scope@;
             
-            @stats puts("FSTATS\n"); printScopeChain(@stats.in_chain@);
+            @stats debugScopeChain("FSTATS\n", @stats.in_chain@);
           @}
         ;
 
@@ -156,15 +158,15 @@ stats : stats stat ';'
           @i @stat.in_chain@ = @stats.1.out_chain@;
           @i @stats.0.out_chain@ = @stat.out_chain@;
 
-          @stats  puts("STATS.leftin"); printScopeChain(@stats.1.in_chain@);
-                  puts("STATS.rightin"); printScopeChain(@stat.in_chain@);
-                  puts("STATS.out"); printScopeChain(@stats.0.out_chain@);
+          @stats  debugScopeChain("STATS.leftin", @stats.1.in_chain@);
+                  debugScopeChain("STATS.rightin", @stat.in_chain@);
+                  debugScopeChain("STATS.out", @stats.0.out_chain@);
         @}
       | 
         @{ 
           @i @stats.out_chain@ = chainPushFrame(@stats.in_chain@, newScopeFrame()); 
 
-          @stats puts("STATS(EPSILON).in"); printScopeChain(@stats.out_chain@);
+          @stats debugScopeChain("STATS(EPSILON).in", @stats.out_chain@);
         @}
 
       ;
@@ -174,7 +176,7 @@ stat  : TReturn expr
           @i @stat.out_chain@ = @stat.in_chain@; 
           @i @expr.scope@ = @stat.in_chain@;
 
-          @stats puts("STAT(return)"); printScopeChain(@stat.in_chain@);
+          @stats debugScopeChain("STAT(return)", @stat.in_chain@);
         @}
       | TIf bool TThen stats TEnd
         @{ 
@@ -182,7 +184,7 @@ stat  : TReturn expr
           @i @stats.in_chain@ = @stat.in_chain@;
           @i @bool.scope@ = @stat.in_chain@;
 
-          @stats puts("STAT(if)"); printScopeChain(@stat.in_chain@);
+          @stats debugScopeChain("STAT(if)", @stat.in_chain@);
         @}
       | TIf bool TThen stats TElse stats TEnd
         @{
@@ -191,7 +193,7 @@ stat  : TReturn expr
           @i @stats.1.in_chain@ = @stat.in_chain@;
           @i @bool.scope@ = @stat.in_chain@;
 
-          @stats puts("STAT(if/else)"); printScopeChain(@stat.in_chain@);
+          @stats debugScopeChain("STAT(if/else)", @stat.in_chain@);
         @}
       | TWhile bool TDo stats TEnd
         @{ 
@@ -199,17 +201,15 @@ stat  : TReturn expr
           @i @stats.in_chain@ = @stat.in_chain@;
           @i @bool.scope@ = @stat.in_chain@;
 
-          @stats puts("STAT(while)"); printScopeChain(@stat.in_chain@);
+          @stats debugScopeChain("STAT(while)", @stat.in_chain@);
         @}
       | TVar vardef TAssign expr
         @{ 
           @i @stat.out_chain@ = chainAddDeclaration(@stat.in_chain@, @vardef.declaration@);
           @i @expr.scope@ = @stat.in_chain@;  
 
-          @stats  puts("STAT(var).in");
-                  printScopeChain(@stat.in_chain@);
-                  puts("STAT(var).out");
-                  printScopeChain(@stat.out_chain@);
+          @stats  debugScopeChain("STAT(var).in", @stat.in_chain@);
+                  debugScopeChain("STAT(var).out", @stat.out_chain@);
         @}
       | lexpr TAssign expr
         @{ 
@@ -217,14 +217,14 @@ stat  : TReturn expr
           @i @expr.scope@ = @stat.in_chain@; 
           @i @lexpr.scope@ = @stat.in_chain@; 
 
-          @stats puts("STAT(assign)"); printScopeChain(@stat.in_chain@);
+          @stats debugScopeChain("STAT(assign)", @stat.in_chain@);
         @}
       | term
         @{ 
           @i @stat.out_chain@ = @stat.in_chain@; 
           @i @term.scope@ = @stat.in_chain@;
 
-          @stats puts("STAT(term)"); printScopeChain(@stat.in_chain@);
+          @stats debugScopeChain("STAT(term)", @stat.in_chain@);
         @}
       ;
 
@@ -270,22 +270,22 @@ lexpr : TIdentifier
 expr  : addexpr
         @{
           @i @addexpr.scope@ = @expr.scope@;
-          @stats puts("EXPR(addexpr)"); printScopeChain(@expr.scope@);
+          @stats debugScopeChain("EXPR(addexpr)", @expr.scope@);
         @}
       | subexpr
         @{
           @i @subexpr.scope@ = @expr.scope@;
-          @stats puts("EXPR(subexpr)"); printScopeChain(@expr.scope@);
+          @stats debugScopeChain("EXPR(subexpr)", @expr.scope@);
         @}
       | mulexpr
         @{
           @i @mulexpr.scope@ = @expr.scope@;
-          @stats puts("EXPR(mulexpr)"); printScopeChain(@expr.scope@);
+          @stats debugScopeChain("EXPR(mulexpr)", @expr.scope@);
         @}
       | term
         @{
           @i @term.scope@ = @expr.scope@;
-          @stats puts("EXPR(term)"); printScopeChain(@expr.scope@);
+          @stats debugScopeChain("EXPR(term)", @expr.scope@);
         @}
       ;
 
@@ -328,39 +328,39 @@ mulexpr : mulexpr '*' term
 term  : '(' expr ')'
         @{
           @i @expr.scope@ = @term.scope@;
-          @stats puts("TERM(parens)"); printScopeChain(@term.scope@);
+          @stats debugScopeChain("TERM(parens)", @term.scope@);
         @}
       | term '[' expr ']'
         @{
           @i @term.1.scope@ = @term.0.scope@;
           @i @expr.scope@ = @term.scope@;
-          @stats puts("TERM(index)"); printScopeChain(@term.0.scope@);
+          @stats debugScopeChain("TERM(index)", @term.0.scope@);
         @}
       | termid
         @{
           @i @termid.scope@ = @term.scope@;
-          @stats puts("TERM(termid)"); printScopeChain(@term.scope@);
+          @stats debugScopeChain("TERM(termid)", @term.scope@);
         @}
       | TDecimalLiteral
         @{
-          @stats puts("TERM(decimal)"); printScopeChain(@term.scope@);
+          @stats debugScopeChain("TERM(decimal)", @term.scope@);
         @}
       | THexLiteral
         @{
-          @stats puts("TERM(hex)"); printScopeChain(@term.scope@);
+          @stats debugScopeChain("TERM(hex)", @term.scope@);
         @}
       | funccall
         @{
           @i @funccall.scope@ = @term.scope@;
-          @stats puts("TERM(funccall)"); printScopeChain(@term.scope@);
+          @stats debugScopeChain("TERM(funccall)", @term.scope@);
         @}
       ;
 
 termid  : TIdentifier
           @{
             @i @termid.identifier@ = @TIdentifier.name@;
-            @stats puts("TERMID"); printScopeChain(@termid.scope@);
-            //@termid checkIdentifierInScope(@termid.identifier@, @termid.scope@);
+            @stats debugScopeChain("TERMID", @termid.scope@);
+            @termid checkIdentifierInScope(@termid.identifier@, @termid.scope@);
           @}
         ;
 
