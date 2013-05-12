@@ -29,7 +29,7 @@ char *stringFromType(VariableType *type) {
 
 VariableDeclaration *newVariableDeclaration(char *name, VariableType *type) {
     char *type_s = stringFromType(type);
-    g_message("newVariableDeclaration(name=%s, type=%s)", name, type_s);
+    g_message("newVariableDeclaration(name: %s, type: %s)", name, type_s);
     g_free(type_s);
     VariableDeclaration *result = g_new(VariableDeclaration, 1);
     result->name = name;
@@ -110,7 +110,7 @@ void printScopeChain(ScopeChain *chain) {
 }
 
 void checkDuplicateParameters(char *identifier, ScopeFrame *parameters) {
-    g_message("checkDuplicateParameters(identifier=%s)", identifier);
+    g_message("checkDuplicateParameters(identifier: %s)", identifier);
     GSList *declarations = g_slist_reverse(parameters->declarations);
     GHashTable *visited = g_hash_table_new(&g_str_hash, &g_str_equal);
 
@@ -133,4 +133,34 @@ void checkDuplicateParameters(char *identifier, ScopeFrame *parameters) {
 
     g_hash_table_destroy(visited);
     g_slist_free(declarations);
+}
+
+gboolean isIdentifierInFrame(char *identifier, ScopeFrame *frame) {
+    for (GSList *it = frame->declarations; it != NULL; it = it->next) {
+        VariableDeclaration *declaration = it->data;
+        if (g_strcmp0(identifier, declaration->name) == 0) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+gboolean isIdentifierInChain(char *identifier, ScopeChain *chain) {
+    for (GSList *it = chain->frames; it != NULL; it = it->next) {
+        ScopeFrame *frame = it->data;
+        if (isIdentifierInFrame(identifier, frame)) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+void checkIdentifierInScope(char *identifier, ScopeChain *scope) {
+    g_message("checkIdentifierInScope(identifier: %s)", identifier);
+    printScopeChain(scope);
+    if (!isIdentifierInChain(identifier, scope)) {
+        g_critical("checkIdentifierInScope():\nidentifier not in scope: %s", identifier);
+        exit(StatusSemanticError);
+    }
 }

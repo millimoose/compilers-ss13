@@ -58,6 +58,10 @@ ScopeChain *chainPushFrame(ScopeChain *chain, ScopeFrame *frame);
 ScopeChain *chainAddDeclaration(ScopeChain *chain, VariableDeclaration *declaration);
 void printScopeChain(ScopeChain* chain);
 
+/**
+ * Semantic checks
+ */
 void checkDuplicateParameters(char *function_identifier, ScopeFrame *parameters);
+void checkIdentifierInScope(char *identifier, ScopeChain *scope);
 
 #endif
