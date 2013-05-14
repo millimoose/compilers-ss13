@@ -24,6 +24,7 @@ typedef struct _VariableType {
 
 VariableType *newVariableType(int rank);
 gboolean eqVariableType(VariableType *left, VariableType *right);
+VariableType *downrankVariableType(VariableType *type);
 
 /**
  * VariableDeclaration
@@ -66,5 +67,13 @@ void debugScopeChain(char *label, ScopeChain *chain);
  */
 void checkDuplicateParameters(char *function_identifier, ScopeFrame *parameters);
 void checkIdentifierInScope(char *identifier, ScopeChain *scope);
+void checkIsInteger(VariableType *type);
+void checkIsArray(VariableType *type);
+void checkSameType(VariableType *left, VariableType *right);
+
+VariableDeclaration *findDeclarationInScope(char *identifier, ScopeChain *scope);
+VariableType *findTypeInScope(char *identifier, ScopeChain *scope);
+
+
 
 #endif

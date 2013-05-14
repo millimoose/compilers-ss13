@@ -7,16 +7,44 @@
 #include "ag.h"
 #include "status-codes.h"
 
+GHashTable *_TypeCache = NULL;
+
+GHashTable *TypeCache(void) {
+    if (_TypeCache == NULL) {
+        _TypeCache = g_hash_table_new(&g_direct_hash, &g_direct_equal);
+    }
+    return _TypeCache;
+}
+
 VariableType *newVariableType(int rank) {
-    VariableType *result = g_new(VariableType, 1);
+    if (rank < 0) {
+        g_warning("newVariableType(): creating variable with negative rank %d", rank);
+    }
+
+    VariableType *result = g_hash_table_lookup(TypeCache(), GINT_TO_POINTER(rank));
+    if (result != NULL) {
+        g_message("newVariableType(): returning cached type");
+        return result;
+    }
+
+    result = g_new(VariableType, 1);
     result->rank = rank;
     result->primitive = PrimitiveInt;
+
+    g_hash_table_insert(TypeCache(), GINT_TO_POINTER(rank), result);
     return result;
 }
 
 gboolean eqVariableType(VariableType *left, VariableType *right) {
     // HACK
     return left->rank == right->rank;
+}
+
+VariableType *downrankVariableType(VariableType *type) {
+    if (type == NULL) {
+        g_warning("downrankVariableType(type: <NULL>)");
+    }
+    return newVariableType(type->rank - 1);
 }
 
 static char *PrimitiveTypeNames[] = {
@@ -126,7 +154,7 @@ ScopeChain *chainAddDeclaration(ScopeChain *chain, VariableDeclaration *declarat
     result->frames = g_slist_prepend(chain->frames->next, 
                                      frameAddDeclaration(top_frame, declaration));
 
-    g_message("chainAddDeclaration() = %p", result);
+    g_message("chainAddDeclaration() = <ScopeChain at %p>", result);
     return result;
 }
 
@@ -175,32 +203,126 @@ void checkDuplicateParameters(char *identifier, ScopeFrame *parameters) {
     g_hash_table_destroy(visited);
 }
 
-gboolean isIdentifierInFrame(char *identifier, ScopeFrame *frame) {
-    for (GSList *it = frame->declarations; it != NULL; it = it->next) {
-        VariableDeclaration *declaration = it->data;
-        if (g_strcmp0(identifier, declaration->name) == 0) {
-            return TRUE;
-        }
-    }
-    return FALSE;
-}
-
-gboolean isIdentifierInChain(char *identifier, ScopeChain *chain) {
-    for (GSList *it = chain->frames; it != NULL; it = it->next) {
-        ScopeFrame *frame = it->data;
-        if (isIdentifierInFrame(identifier, frame)) {
-            return TRUE;
-        }
-    }
-
-    return FALSE;
-}
-
 void checkIdentifierInScope(char *identifier, ScopeChain *scope) {
     g_message("checkIdentifierInScope(identifier: %s)", identifier);
     printScopeChain(scope);
-    if (!isIdentifierInChain(identifier, scope)) {
+    if (findDeclarationInScope(identifier, scope) != NULL) {
         g_critical("checkIdentifierInScope():\nidentifier not in scope: %s", identifier);
         exit(StatusSemanticError);
     }
+}
+
+VariableDeclaration *findDeclarationInFrame(char *identifier, ScopeFrame *frame) {
+    g_message("findDeclarationInFrame(identifier: %s, frame: <ScopeFrame at %p>", identifier, frame);
+    for (GSList *it = frame->declarations; it != NULL; it = it->next) {
+        VariableDeclaration *declaration = it->data;
+        if (g_strcmp0(identifier, declaration->name) == 0) {
+            char *declaration_s = stringFromDeclaration(declaration);
+            g_message("findDeclarationInFrame() = %s", declaration_s);
+            g_free(declaration_s);
+
+            return declaration;
+        }
+    }    
+
+    g_message("findDeclarationInFrame() = NULL");
+    return NULL;
+}
+
+VariableDeclaration *findDeclarationInScope(char *identifier, ScopeChain *scope) {
+    g_message("findDeclarationInScope(identifier: %s, scope: <ScopeChain at %p>)", identifier, scope);
+
+    for (GSList *it = scope->frames; it != NULL; it = it->next) {
+        ScopeFrame *frame = it->data;
+        VariableDeclaration *declaration = findDeclarationInFrame(identifier, frame);
+        if (declaration != NULL) {
+            char *declaration_s = stringFromDeclaration(declaration);
+            g_message("findDeclarationInScope() = %s", declaration_s);
+            g_free(declaration_s);
+
+            return declaration;
+        }
+    }
+
+    g_message("findDeclarationInScope() = NULL");
+    return NULL;
+}
+
+VariableType *findTypeInScope(char *identifier, ScopeChain *scope) {
+    g_message("findTypeInScope(identifier: %s, scope: <ScopeChain at %p>)", identifier, scope);
+
+    VariableDeclaration *declaration = findDeclarationInScope(identifier, scope);
+    if (declaration != NULL) {
+        char *type_s = stringFromType(declaration->type);
+        g_message("findTypeInScope() = <VariableType - %s>", type_s);
+        g_free(type_s);
+
+        return declaration->type;
+    } else {
+        g_message("findTypeInScope() = NULL");
+
+        return NULL;
+    }
+}
+
+void checkIsInteger(VariableType *type) {
+    if (type == NULL) {
+        g_warning("checkIsInteger(type: <NULL>)");
+        return;
+    }
+
+    char *type_s = stringFromType(type);
+    g_message("checkIsInteger(type: <VariableType at %p - %s>)", type, type_s);
+    g_free(type_s);
+
+    if (type->rank != 0) {
+        g_critical("expression must be an int");
+        exit(StatusSemanticError);
+    }
+}
+
+void checkIsArray(VariableType *type) {
+    if (type == NULL) {
+        g_warning("checkIsArray(type: <NULL>)");
+        return;
+    }
+
+    char *type_s = stringFromType(type);
+    g_message("checkIsArray(type: <VariableType at %p - %s>)", type, type_s);
+    g_free(type_s);
+
+    if (type->rank <= 0) {
+        g_critical("expression must be an array");
+        exit(StatusSemanticError);
+    }
+}
+
+char *stringFromType0(VariableType *type) {
+    if (type == NULL) return g_strdup("<NULL>");
+
+    char *type_s = stringFromType(type);
+    GString *result = g_string_new("");
+    g_string_printf(result, "<VariableType at %p - %s>", type, type_s);
+    g_free(type_s);
+    return g_string_free(result, FALSE);
+}
+
+void checkSameType(VariableType *left, VariableType *right) {
+    char *left_s = stringFromType0(left);
+    char *right_s = stringFromType0(right);
+
+    if (left == NULL || right == NULL) {
+        g_warning("checkSameType(left: %s, right: %s)", left_s, right_s);
+        return;
+    }
+
+    g_message("checkSameType(left: %s, right: %s)", left_s, right_s);
+    
+
+    if (!eqVariableType(left, right)) {
+        g_critical("checkSameType(): left-hand-type must be equal to right-hand-type");
+        exit(StatusSemanticError);
+    }
+    g_free(left_s);
+    g_free(right_s);
 }

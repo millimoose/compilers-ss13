@@ -65,27 +65,29 @@
 @attributes { struct _ScopeChain *in_chain; struct _ScopeChain *out_chain; } stats
 @attributes { struct _ScopeChain *in_chain; struct _ScopeChain *out_chain; } stat
 
-@attributes {struct _ScopeChain *scope; } expr
+@attributes {struct _ScopeChain *scope; struct _VariableType *type; } expr
 @attributes {struct _ScopeChain *scope; } bool
 @attributes {struct _ScopeChain *scope; } bterm
-@attributes {struct _ScopeChain *scope; } term
-@attributes {struct _ScopeChain *scope; } lexpr
-@attributes {struct _ScopeChain *scope; } addexpr
-@attributes {struct _ScopeChain *scope; } mulexpr
-@attributes {struct _ScopeChain *scope; } subexpr
-@attributes {struct _ScopeChain *scope; } funccall
+@attributes {struct _ScopeChain *scope; struct _VariableType *type; } term
+@attributes {struct _ScopeChain *scope; struct _VariableType *type; } lexpr
+@attributes {struct _ScopeChain *scope; struct _VariableType *type; } addexpr
+@attributes {struct _ScopeChain *scope; struct _VariableType *type; } mulexpr
+@attributes {struct _ScopeChain *scope; struct _VariableType *type; } subexpr
+@attributes {struct _ScopeChain *scope; struct _VariableType *type; } funccall
 @attributes {struct _ScopeChain *scope; } callpars
 @attributes {struct _ScopeChain *scope; } _callpars
 @attributes {struct _ScopeChain *scope; } fstats
-@attributes {char *identifier; struct _ScopeChain *scope; } termid
+@attributes {char *identifier; struct _ScopeChain *scope; struct _VariableType *type; } termid
 
 // Prints the variables in scope for debugging
-@traversal preorder stats
+@traversal inorder stats
 // semantic checks of function definitions
 // (duplicate parameters)
 @traversal preorder funcdef
 // checks if an identifier is in scope
-@traversal preorder termid
+@traversal postorder termid
+
+@traversal postorder typecheck
 
 %%
 
@@ -210,6 +212,8 @@ stat  : TReturn expr
 
           @stats  debugScopeChain("STAT(var).in", @stat.in_chain@);
                   debugScopeChain("STAT(var).out", @stat.out_chain@);
+          @typecheck checkSameType(@vardef.declaration@->type, @expr.type@);
+
         @}
       | lexpr TAssign expr
         @{ 
@@ -218,6 +222,7 @@ stat  : TReturn expr
           @i @lexpr.scope@ = @stat.in_chain@; 
 
           @stats debugScopeChain("STAT(assign)", @stat.in_chain@);
+          @typecheck checkSameType(@lexpr.type@, @expr.type@);
         @}
       | term
         @{ 
@@ -251,19 +256,29 @@ bterm : '(' bool ')'
         @{
           @i @expr.0.scope@ = @bterm.scope@;
           @i @expr.1.scope@ = @bterm.scope@;
+          @typecheck checkIsInteger(@expr.0.type@);
+          @typecheck checkIsInteger(@expr.1.type@);
         @}
       | expr '#' expr
         @{
           @i @expr.0.scope@ = @bterm.scope@;
           @i @expr.1.scope@ = @bterm.scope@;
+          @typecheck checkIsInteger(@expr.0.type@);
+          @typecheck checkIsInteger(@expr.1.type@);
         @}
       ;
 
 lexpr : TIdentifier
+        @{
+          @i @lexpr.type@ = findTypeInScope(@TIdentifier.name@, @lexpr.scope@);
+        @}
       | term '[' expr ']'
         @{
           @i @term.scope@ = @lexpr.scope@;
           @i @expr.scope@ = @lexpr.scope@;
+          @i @lexpr.type@ = downrankVariableType(@term.type@);
+          @typecheck checkIsArray(@term.type@);
+          @typecheck checkIsInteger(@expr.type@);
         @}
       ;
 
@@ -271,21 +286,25 @@ expr  : addexpr
         @{
           @i @addexpr.scope@ = @expr.scope@;
           @stats debugScopeChain("EXPR(addexpr)", @expr.scope@);
+          @i @expr.type@ = @addexpr.type@;
         @}
       | subexpr
         @{
           @i @subexpr.scope@ = @expr.scope@;
           @stats debugScopeChain("EXPR(subexpr)", @expr.scope@);
+          @i @expr.type@ = @subexpr.type@;
         @}
       | mulexpr
         @{
           @i @mulexpr.scope@ = @expr.scope@;
           @stats debugScopeChain("EXPR(mulexpr)", @expr.scope@);
+          @i @expr.type@ = @mulexpr.type@;
         @}
       | term
         @{
           @i @term.scope@ = @expr.scope@;
           @stats debugScopeChain("EXPR(term)", @expr.scope@);
+          @i @expr.type@ = @term.type@;
         @}
       ;
 
@@ -293,11 +312,16 @@ addexpr : addexpr '+' term
           @{
             @i @addexpr.1.scope@ = @addexpr.0.scope@;
             @i @term.scope@ = @addexpr.0.scope@;
+            @i @addexpr.type@ = newVariableType(0);
+            @typecheck checkIsInteger(@term.type@);
           @}
         | term '+' term
           @{
             @i @term.0.scope@ = @addexpr.scope@;
             @i @term.1.scope@ = @addexpr.scope@;
+            @i @addexpr.type@ = newVariableType(0);
+            @typecheck checkIsInteger(@term.0.type@);
+            @typecheck checkIsInteger(@term.1.type@);
           @}
         ;
 
@@ -305,11 +329,16 @@ subexpr : subexpr '-' term
           @{
             @i @subexpr.1.scope@ = @subexpr.0.scope@;
             @i @term.scope@ = @subexpr.0.scope@;
+            @i @subexpr.type@ = newVariableType(0);
+            @typecheck checkIsInteger(@term.type@);
           @}
         | term '-' term
           @{
             @i @term.0.scope@ = @subexpr.scope@;
             @i @term.1.scope@ = @subexpr.scope@;
+            @i @subexpr.type@ = newVariableType(0);
+            @typecheck checkIsInteger(@term.0.type@);
+            @typecheck checkIsInteger(@term.1.type@);
           @}
         ;
 
@@ -317,11 +346,16 @@ mulexpr : mulexpr '*' term
           @{
             @i @mulexpr.1.scope@ = @mulexpr.0.scope@;
             @i @term.scope@ = @mulexpr.0.scope@;
+            @i @mulexpr.type@ = newVariableType(0);
+            @typecheck checkIsInteger(@term.type@);
           @}
         | term '*' term
           @{
             @i @term.0.scope@ = @mulexpr.scope@;
             @i @term.1.scope@ = @mulexpr.scope@;
+            @i @mulexpr.type@ = newVariableType(0);
+            @typecheck checkIsInteger(@term.0.type@);
+            @typecheck checkIsInteger(@term.1.type@);
           @}
         ;
 
@@ -329,30 +363,38 @@ term  : '(' expr ')'
         @{
           @i @expr.scope@ = @term.scope@;
           @stats debugScopeChain("TERM(parens)", @term.scope@);
+          @i @term.type@ = @expr.type@;
         @}
       | term '[' expr ']'
         @{
           @i @term.1.scope@ = @term.0.scope@;
           @i @expr.scope@ = @term.scope@;
           @stats debugScopeChain("TERM(index)", @term.0.scope@);
+          @i @term.0.type@ = downrankVariableType(@term.1.type@);
+          @typecheck checkIsInteger(@expr.type@);
+          @typecheck checkIsArray(@term.type@);
         @}
       | termid
         @{
           @i @termid.scope@ = @term.scope@;
           @stats debugScopeChain("TERM(termid)", @term.scope@);
+          @i @term.type@ = @termid.type@;
         @}
       | TDecimalLiteral
         @{
           @stats debugScopeChain("TERM(decimal)", @term.scope@);
+          @i @term.type@ = newVariableType(0);
         @}
       | THexLiteral
         @{
           @stats debugScopeChain("TERM(hex)", @term.scope@);
+          @i @term.type@ = newVariableType(0);
         @}
       | funccall
         @{
           @i @funccall.scope@ = @term.scope@;
           @stats debugScopeChain("TERM(funccall)", @term.scope@);
+          @i @term.type@ = @funccall.type@;
         @}
       ;
 
@@ -361,12 +403,14 @@ termid  : TIdentifier
             @i @termid.identifier@ = @TIdentifier.name@;
             @stats debugScopeChain("TERMID", @termid.scope@);
             @termid checkIdentifierInScope(@termid.identifier@, @termid.scope@);
+            @i @termid.type@ = findTypeInScope(@termid.identifier@, @termid.scope@);
           @}
         ;
 
 funccall  : TIdentifier '(' callpars ')' ':' type
             @{
               @i @callpars.scope@ = @funccall.scope@;
+              @i @funccall.type@ = @type.type@;
             @}
           ;
 
