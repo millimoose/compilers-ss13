@@ -371,8 +371,8 @@ term  : '(' expr ')'
           @i @expr.scope@ = @term.scope@;
           @stats debugScopeChain("TERM(index)", @term.0.scope@);
           @i @term.0.type@ = downrankVariableType(@term.1.type@);
+          @typecheck checkIsArray(@term.1.type@);
           @typecheck checkIsInteger(@expr.type@);
-          @typecheck checkIsArray(@term.type@);
         @}
       | termid
         @{
