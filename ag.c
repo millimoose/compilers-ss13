@@ -206,7 +206,7 @@ void checkDuplicateParameters(char *identifier, ScopeFrame *parameters) {
 void checkIdentifierInScope(char *identifier, ScopeChain *scope) {
     g_message("checkIdentifierInScope(identifier: %s)", identifier);
     printScopeChain(scope);
-    if (findDeclarationInScope(identifier, scope) != NULL) {
+    if (findDeclarationInScope(identifier, scope) == NULL) {
         g_critical("checkIdentifierInScope():\nidentifier not in scope: %s", identifier);
         exit(StatusSemanticError);
     }
