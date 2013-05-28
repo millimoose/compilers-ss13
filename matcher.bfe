@@ -1,0 +1,17 @@
+%{
+//#include <glib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include "codea.h"
+%}
+%start return
+%term Const=1 Add=2 Mul=3 Sub=4 
+%term AddAssign=5 MulAssign=6 SubAssign=7
+%term Dereference=8 Register=9 Assign=10 Return=11
+%%
+return:     Return(reg) # 1 # printf("movq %s, %%rax", kids[0]->reg_name);
+return:     Return(const) # 1 # printf("movq $%ld, %%rax", kids[0]->value);
+reg: Reg # 0 #
+const: Const # 0 #
+%%

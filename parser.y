@@ -6,6 +6,11 @@
 
   #include "ag.h"
   #include "status-codes.h"
+
+  // suppress warnings because of bad Ox output
+  #pragma GCC diagnostic ignored "-Wformat"
+  #pragma GCC diagnostic ignored "-Wformat-security"
+  #pragma GCC diagnostic ignored "-Wdangling-else"
 %}
 
 %union {}
@@ -51,8 +56,7 @@
 
 %start program
 
-@attributes {int value;} TDecimalLiteral
-@attributes {int value;} THexLiteral
+@attributes {int value;} TDecimalLiteral THexLiteral
 @attributes {char *name;} TIdentifier
 
 @attributes { char *identifier; struct _ScopeFrame *parameters; } funcdef
@@ -62,21 +66,10 @@
 @attributes { struct _VariableType *type; } type
 @attributes { struct _VariableDeclaration *declaration; } vardef 
 
-@attributes { struct _ScopeChain *in_chain; struct _ScopeChain *out_chain; } stats
-@attributes { struct _ScopeChain *in_chain; struct _ScopeChain *out_chain; } stat
+@attributes { struct _ScopeChain *in_chain; struct _ScopeChain *out_chain; } stats stat
 
-@attributes {struct _ScopeChain *scope; struct _VariableType *type; } expr
-@attributes {struct _ScopeChain *scope; } bool
-@attributes {struct _ScopeChain *scope; } bterm
-@attributes {struct _ScopeChain *scope; struct _VariableType *type; } term
-@attributes {struct _ScopeChain *scope; struct _VariableType *type; } lexpr
-@attributes {struct _ScopeChain *scope; struct _VariableType *type; } addexpr
-@attributes {struct _ScopeChain *scope; struct _VariableType *type; } mulexpr
-@attributes {struct _ScopeChain *scope; struct _VariableType *type; } subexpr
-@attributes {struct _ScopeChain *scope; struct _VariableType *type; } funccall
-@attributes {struct _ScopeChain *scope; } callpars
-@attributes {struct _ScopeChain *scope; } _callpars
-@attributes {struct _ScopeChain *scope; } fstats
+@attributes {struct _ScopeChain *scope; } bool bterm callpars _callpars fstats
+@attributes {struct _ScopeChain *scope; struct _VariableType *type; } term lexpr expr addexpr mulexpr subexpr funccall
 @attributes {char *identifier; struct _ScopeChain *scope; struct _VariableType *type; } termid
 
 // Prints the variables in scope for debugging
